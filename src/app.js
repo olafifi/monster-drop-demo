@@ -223,10 +223,10 @@
   function updateWarnings() {
     const warnings = [];
     if (state.warningFlags.swapped) {
-      warnings.push("dropOuterRadius 小于 dropInnerRadius，已自动交换两者。");
+      warnings.push("掉落外半径小于掉落内半径，已自动交换两者。");
     }
     if (state.config.dropInnerRadius < state.config.monsterRadius) {
-      warnings.push("建议 dropInnerRadius 大于等于 monsterRadius，避免道具落在怪物占位内。");
+      warnings.push("建议掉落内半径大于等于怪物半径，避免道具落在怪物占位内。");
     }
     warningsEl.innerHTML = warnings
       .map((message) => `<div class="warning-item">${message}</div>`)

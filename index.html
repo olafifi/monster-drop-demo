@@ -10,23 +10,37 @@
     <main class="app-shell">
       <aside class="side-panel" aria-label="掉落参数面板">
         <div class="panel-header">
-          <h1>掉落落点扇环 Demo</h1>
+          <div class="panel-title-row">
+            <h1>掉落落点扇环 Demo</h1>
+            <details class="algorithm-help">
+              <summary aria-label="查看实际计算算法" title="查看实际计算算法">?</summary>
+              <div class="algorithm-popover" role="note">
+                <h2>实际计算算法</h2>
+                <p>P 为角色位置，M 为怪物位置。扇区以怪物为圆心，以玩家 → 怪物方向为中心方向。</p>
+                <code>baseAngle = atan2(M.y - P.y, M.x - P.x)</code>
+                <code>theta = baseAngle + random(-dropAngle / 2, dropAngle / 2)</code>
+                <code>r = sqrt(random(dropInnerRadius², dropOuterRadius²))</code>
+                <code>dropPos = M + Vector2(cos(theta), sin(theta)) * r</code>
+                <p>当掉落角度为 360° 时，theta 在完整圆周内随机；半径用平方半径区间采样，保证面积分布更均匀。</p>
+              </div>
+            </details>
+          </div>
           <p>怪物死亡后，道具在玩家到怪物方向的背向侧扇环内随机。</p>
         </div>
 
         <section class="panel-section" aria-labelledby="position-title">
           <h2 id="position-title">位置</h2>
           <div class="control-grid compact">
-            <label for="playerX">playerX</label>
+            <label for="playerX"><span class="label-text">角色 X</span><span class="field-key">playerX</span></label>
             <input id="playerX" type="number" step="1" />
 
-            <label for="playerY">playerY</label>
+            <label for="playerY"><span class="label-text">角色 Y</span><span class="field-key">playerY</span></label>
             <input id="playerY" type="number" step="1" />
 
-            <label for="monsterX">monsterX</label>
+            <label for="monsterX"><span class="label-text">怪物 X</span><span class="field-key">monsterX</span></label>
             <input id="monsterX" type="number" step="1" />
 
-            <label for="monsterY">monsterY</label>
+            <label for="monsterY"><span class="label-text">怪物 Y</span><span class="field-key">monsterY</span></label>
             <input id="monsterY" type="number" step="1" />
           </div>
         </section>
@@ -35,7 +49,7 @@
           <h2 id="shape-title">怪物与扇环</h2>
 
           <div class="control-line">
-            <label for="monsterRadius">monsterRadius</label>
+            <label for="monsterRadius"><span class="label-text">怪物半径</span><span class="field-key">monsterRadius</span></label>
             <div class="number-range">
               <input id="monsterRadius" type="number" min="0" max="180" step="1" />
               <input id="monsterRadiusRange" type="range" min="0" max="180" step="1" />
@@ -43,7 +57,7 @@
           </div>
 
           <div class="control-line">
-            <label for="dropAngle">dropAngle</label>
+            <label for="dropAngle"><span class="label-text">掉落角度</span><span class="field-key">dropAngle</span></label>
             <div class="number-range">
               <input id="dropAngle" type="number" min="1" max="360" step="1" />
               <input id="dropAngleRange" type="range" min="1" max="360" step="1" />
@@ -51,7 +65,7 @@
           </div>
 
           <div class="control-line">
-            <label for="dropInnerRadius">dropInnerRadius</label>
+            <label for="dropInnerRadius"><span class="label-text">掉落内半径</span><span class="field-key">dropInnerRadius</span></label>
             <div class="number-range">
               <input id="dropInnerRadius" type="number" min="0" max="360" step="1" />
               <input id="dropInnerRadiusRange" type="range" min="0" max="360" step="1" />
@@ -59,7 +73,7 @@
           </div>
 
           <div class="control-line">
-            <label for="dropOuterRadius">dropOuterRadius</label>
+            <label for="dropOuterRadius"><span class="label-text">掉落外半径</span><span class="field-key">dropOuterRadius</span></label>
             <div class="number-range">
               <input id="dropOuterRadius" type="number" min="0" max="420" step="1" />
               <input id="dropOuterRadiusRange" type="range" min="0" max="420" step="1" />
@@ -67,7 +81,7 @@
           </div>
 
           <div class="control-line">
-            <label for="sampleCount">sampleCount</label>
+            <label for="sampleCount"><span class="label-text">随机生成数量</span><span class="field-key">sampleCount</span></label>
             <div class="number-range">
               <input id="sampleCount" type="number" min="1" max="1000" step="1" />
               <input id="sampleCountRange" type="range" min="1" max="1000" step="1" />
@@ -79,7 +93,7 @@
           <h2 id="actions-title">操作</h2>
           <div class="button-grid">
             <button id="generateOne" type="button">生成 1 个落点</button>
-            <button id="generateMany" type="button">生成 sampleCount 个落点</button>
+            <button id="generateMany" type="button">生成指定数量落点</button>
             <button id="clearSamples" type="button">清空落点</button>
             <button id="resetDefaults" type="button">重置默认值</button>
           </div>
@@ -89,19 +103,19 @@
           <h2 id="result-title">当前计算结果</h2>
           <dl class="result-list">
             <div>
-              <dt>baseAngle</dt>
+              <dt>基准角度 <span class="field-key">baseAngle</span></dt>
               <dd id="baseAngleValue">0.00°</dd>
             </div>
             <div>
-              <dt>dropAngle</dt>
+              <dt>掉落角度 <span class="field-key">dropAngle</span></dt>
               <dd id="dropAngleValue">180°</dd>
             </div>
             <div>
-              <dt>dropInnerRadius</dt>
+              <dt>掉落内半径 <span class="field-key">dropInnerRadius</span></dt>
               <dd id="dropInnerRadiusValue">70</dd>
             </div>
             <div>
-              <dt>dropOuterRadius</dt>
+              <dt>掉落外半径 <span class="field-key">dropOuterRadius</span></dt>
               <dd id="dropOuterRadiusValue">180</dd>
             </div>
             <div>

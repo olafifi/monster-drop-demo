@@ -47,6 +47,7 @@ input {
 
 .side-panel {
   overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid var(--line);
   background: var(--panel);
 }
@@ -71,6 +72,83 @@ input {
   line-height: 1.55;
 }
 
+.panel-title-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.algorithm-help {
+  position: relative;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.algorithm-help summary {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #b8c4cf;
+  border-radius: 50%;
+  background: #f7fafc;
+  color: #344454;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  list-style: none;
+}
+
+.algorithm-help summary::-webkit-details-marker {
+  display: none;
+}
+
+.algorithm-help summary:hover {
+  border-color: var(--green);
+  color: #11633e;
+}
+
+.algorithm-popover {
+  position: absolute;
+  z-index: 5;
+  top: 30px;
+  left: -178px;
+  width: min(330px, calc(100vw - 42px));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
+.algorithm-popover h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.algorithm-popover p {
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.algorithm-popover code {
+  display: block;
+  margin-top: 6px;
+  border-radius: 6px;
+  background: #f3f6f9;
+  color: #1f2937;
+  padding: 7px 8px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .panel-section h2 {
   margin: 0 0 14px;
   font-size: 14px;
@@ -84,15 +162,29 @@ input {
 }
 
 .control-grid.compact {
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: 104px minmax(0, 1fr);
   align-items: center;
 }
 
 .control-grid label,
 .control-line label {
+  display: grid;
+  gap: 2px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.2;
+}
+
+.label-text {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.field-key {
+  color: #7b8794;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .control-line {
@@ -179,7 +271,7 @@ button:active {
 
 .result-list div {
   display: grid;
-  grid-template-columns: 136px minmax(0, 1fr);
+  grid-template-columns: 154px minmax(0, 1fr);
   align-items: center;
   min-height: 28px;
 }
