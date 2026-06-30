@@ -20,10 +20,12 @@ http://localhost:5173
 
 ## 功能
 
+- 顶部参数栏集中显示配置、操作和当前计算结果，画布占据下方主区域。
 - 拖拽画布中的角色或怪物，实时刷新扇环方向。
-- 调整 `playerX`、`playerY`、`monsterX`、`monsterY`、`monsterRadius`、`dropAngle`、`dropInnerRadius`、`dropOuterRadius`、`sampleCount`。
+- 调整 `playerX`、`playerY`、`playerRadius`、`monsterX`、`monsterY`、`monsterRadius`、`dropAngle`、`dropInnerRadius`、`dropOuterRadius`、`sampleCount`。
+- 鼠标停在角色内滚轮调整 `playerRadius`，停在怪物内滚轮调整 `monsterRadius`，停在绿色扇环内滚轮调整 `dropOuterRadius`。
 - 生成 1 个落点、生成 `sampleCount` 个落点、清空落点、重置默认值。
-- 绘制角色、怪物、怪物半径、玩家到怪物方向箭头、掉落扇环、内外半径弧线、角度边界线和随机落点。
+- 绘制角色、怪物、怪物半径、玩家到怪物方向箭头、掉落扇环、内外半径弧线、角度边界线、滚轮命中高亮和随机落点。
 - 显示 `baseAngle`、`dropAngle`、`dropInnerRadius`、`dropOuterRadius` 和最近一次落点坐标。
 
 ## 核心规则
@@ -55,7 +57,7 @@ dropPos = M + Vector2(cos(theta), sin(theta)) * r;
 npm test
 ```
 
-测试覆盖角度夹取、半径交换、重合点、面积均匀半径采样、360° 全圆环和扇区边界判断。
+测试覆盖角度夹取、半径交换、重合点、面积均匀半径采样、360° 全圆环、扇区边界判断、滚轮命中区域和 UI 文案。
 
 ## GitHub Pages 在线预览
 

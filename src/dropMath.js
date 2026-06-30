@@ -43,6 +43,7 @@
     const config = {
       playerX: toFiniteNumber(rawConfig.playerX, 0),
       playerY: toFiniteNumber(rawConfig.playerY, 0),
+      playerRadius: Math.max(4, toFiniteNumber(rawConfig.playerRadius, 18)),
       monsterX: toFiniteNumber(rawConfig.monsterX, 0),
       monsterY: toFiniteNumber(rawConfig.monsterY, 0),
       monsterRadius: Math.max(0, toFiniteNumber(rawConfig.monsterRadius, 0)),

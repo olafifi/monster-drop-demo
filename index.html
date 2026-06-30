@@ -8,7 +8,7 @@
   </head>
   <body>
     <main class="app-shell">
-      <aside class="side-panel" aria-label="掉落参数面板">
+      <aside class="top-panel" aria-label="掉落参数面板">
         <div class="panel-header">
           <div class="panel-title-row">
             <h1>掉落落点扇环 Demo</h1>
@@ -45,46 +45,56 @@
           </div>
         </section>
 
-        <section class="panel-section" aria-labelledby="shape-title">
-          <h2 id="shape-title">怪物与扇环</h2>
+        <section class="panel-section shape-section" aria-labelledby="shape-title">
+          <h2 id="shape-title">尺寸与扇环</h2>
 
-          <div class="control-line">
-            <label for="monsterRadius"><span class="label-text">怪物半径</span><span class="field-key">monsterRadius</span></label>
-            <div class="number-range">
-              <input id="monsterRadius" type="number" min="0" max="180" step="1" />
-              <input id="monsterRadiusRange" type="range" min="0" max="180" step="1" />
+          <div class="shape-controls">
+            <div class="control-line">
+              <label for="playerRadius"><span class="label-text">角色半径</span><span class="field-key">playerRadius</span></label>
+              <div class="number-range">
+                <input id="playerRadius" type="number" min="4" max="90" step="1" />
+                <input id="playerRadiusRange" type="range" min="4" max="90" step="1" />
+              </div>
             </div>
-          </div>
 
-          <div class="control-line">
-            <label for="dropAngle"><span class="label-text">掉落角度</span><span class="field-key">dropAngle</span></label>
-            <div class="number-range">
-              <input id="dropAngle" type="number" min="1" max="360" step="1" />
-              <input id="dropAngleRange" type="range" min="1" max="360" step="1" />
+            <div class="control-line">
+              <label for="monsterRadius"><span class="label-text">怪物半径</span><span class="field-key">monsterRadius</span></label>
+              <div class="number-range">
+                <input id="monsterRadius" type="number" min="0" max="180" step="1" />
+                <input id="monsterRadiusRange" type="range" min="0" max="180" step="1" />
+              </div>
             </div>
-          </div>
 
-          <div class="control-line">
-            <label for="dropInnerRadius"><span class="label-text">掉落内半径</span><span class="field-key">dropInnerRadius</span></label>
-            <div class="number-range">
-              <input id="dropInnerRadius" type="number" min="0" max="360" step="1" />
-              <input id="dropInnerRadiusRange" type="range" min="0" max="360" step="1" />
+            <div class="control-line">
+              <label for="dropAngle"><span class="label-text">掉落角度</span><span class="field-key">dropAngle</span></label>
+              <div class="number-range">
+                <input id="dropAngle" type="number" min="1" max="360" step="1" />
+                <input id="dropAngleRange" type="range" min="1" max="360" step="1" />
+              </div>
             </div>
-          </div>
 
-          <div class="control-line">
-            <label for="dropOuterRadius"><span class="label-text">掉落外半径</span><span class="field-key">dropOuterRadius</span></label>
-            <div class="number-range">
-              <input id="dropOuterRadius" type="number" min="0" max="420" step="1" />
-              <input id="dropOuterRadiusRange" type="range" min="0" max="420" step="1" />
+            <div class="control-line">
+              <label for="dropInnerRadius"><span class="label-text">掉落内半径</span><span class="field-key">dropInnerRadius</span></label>
+              <div class="number-range">
+                <input id="dropInnerRadius" type="number" min="0" max="360" step="1" />
+                <input id="dropInnerRadiusRange" type="range" min="0" max="360" step="1" />
+              </div>
             </div>
-          </div>
 
-          <div class="control-line">
-            <label for="sampleCount"><span class="label-text">随机生成数量</span><span class="field-key">sampleCount</span></label>
-            <div class="number-range">
-              <input id="sampleCount" type="number" min="1" max="1000" step="1" />
-              <input id="sampleCountRange" type="range" min="1" max="1000" step="1" />
+            <div class="control-line">
+              <label for="dropOuterRadius"><span class="label-text">掉落外半径</span><span class="field-key">dropOuterRadius</span></label>
+              <div class="number-range">
+                <input id="dropOuterRadius" type="number" min="0" max="420" step="1" />
+                <input id="dropOuterRadiusRange" type="range" min="0" max="420" step="1" />
+              </div>
+            </div>
+
+            <div class="control-line">
+              <label for="sampleCount"><span class="label-text">随机生成数量</span><span class="field-key">sampleCount</span></label>
+              <div class="number-range">
+                <input id="sampleCount" type="number" min="1" max="1000" step="1" />
+                <input id="sampleCountRange" type="range" min="1" max="1000" step="1" />
+              </div>
             </div>
           </div>
         </section>
@@ -99,7 +109,7 @@
           </div>
         </section>
 
-        <section class="panel-section" aria-labelledby="result-title">
+        <section class="panel-section result-section" aria-labelledby="result-title">
           <h2 id="result-title">当前计算结果</h2>
           <dl class="result-list">
             <div>
@@ -136,6 +146,7 @@
             <span><i class="legend-dot drop"></i>烧鸡 / 鸡腿</span>
           </div>
           <span id="sampleCountBadge" class="sample-badge">0 个落点</span>
+          <span id="hoverTargetBadge" class="sample-badge">滚轮目标：-</span>
         </div>
         <div class="canvas-frame">
           <canvas id="dropCanvas" width="900" height="620" aria-label="掉落扇环区域画布"></canvas>
@@ -144,6 +155,7 @@
     </main>
 
     <script src="src/dropMath.js"></script>
+    <script src="src/dropInteraction.js"></script>
     <script src="src/app.js"></script>
   </body>
 </html>

@@ -22,6 +22,7 @@ test("configuration controls show Chinese labels while keeping field keys", () =
   [
     "角色 X",
     "角色 Y",
+    "角色半径",
     "怪物 X",
     "怪物 Y",
     "怪物半径",
@@ -30,6 +31,7 @@ test("configuration controls show Chinese labels while keeping field keys", () =
     "掉落外半径",
     "随机生成数量",
     "playerX",
+    "playerRadius",
     "monsterRadius",
     "dropOuterRadius",
     "sampleCount",
@@ -43,5 +45,13 @@ test("algorithm help exposes the actual sampling formula", () => {
     "theta = baseAngle + random(-dropAngle / 2, dropAngle / 2)",
     "r = sqrt(random(dropInnerRadius², dropOuterRadius²))",
     "dropPos = M + Vector2(cos(theta), sin(theta)) * r",
+  ].forEach(assertIncludes);
+});
+
+test("layout exposes a top parameter panel and wheel target status", () => {
+  [
+    'class="top-panel"',
+    'id="hoverTargetBadge"',
+    "滚轮目标",
   ].forEach(assertIncludes);
 });

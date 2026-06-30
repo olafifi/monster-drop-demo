@@ -1,15 +1,19 @@
 (() => {
   const {
     TAU,
-    clampConfig,
     degToRad,
     getBaseAngleFromConfig,
     isPointInDropRegion,
     normalizeRadians,
     radToDeg,
     sampleDropPosition,
-    signedAngleDelta,
   } = window.DropMath;
+  const {
+    WHEEL_TARGETS,
+    applyWheelDelta,
+    clampInteractionConfig,
+    getWheelTarget,
+  } = window.DropInteraction;
 
   const WORLD_WIDTH = 900;
   const WORLD_HEIGHT = 620;
@@ -17,6 +21,7 @@
   const DEFAULT_CONFIG = {
     playerX: 250,
     playerY: 310,
+    playerRadius: 18,
     monsterX: 520,
     monsterY: 310,
     monsterRadius: 42,
@@ -30,10 +35,13 @@
   const ctx = canvas.getContext("2d");
   const warningsEl = document.getElementById("warnings");
   const sampleCountBadge = document.getElementById("sampleCountBadge");
+  const hoverTargetBadge = document.getElementById("hoverTargetBadge");
 
   const controls = {
     playerX: document.getElementById("playerX"),
     playerY: document.getElementById("playerY"),
+    playerRadius: document.getElementById("playerRadius"),
+    playerRadiusRange: document.getElementById("playerRadiusRange"),
     monsterX: document.getElementById("monsterX"),
     monsterY: document.getElementById("monsterY"),
     monsterRadius: document.getElementById("monsterRadius"),
@@ -57,10 +65,11 @@
   };
 
   const state = {
-    config: clampConfig(DEFAULT_CONFIG),
+    config: clampInteractionConfig(DEFAULT_CONFIG),
     samples: [],
     lastDrop: null,
     dragTarget: null,
+    hoverTarget: null,
     warningFlags: {
       swapped: false,
     },
@@ -69,6 +78,8 @@
   const linkedRanges = {
     monsterRadius: "monsterRadiusRange",
     monsterRadiusRange: "monsterRadius",
+    playerRadius: "playerRadiusRange",
+    playerRadiusRange: "playerRadius",
     dropAngle: "dropAngleRange",
     dropAngleRange: "dropAngle",
     dropInnerRadius: "dropInnerRadiusRange",
@@ -83,6 +94,7 @@
     return {
       playerX: controls.playerX.value,
       playerY: controls.playerY.value,
+      playerRadius: controls.playerRadius.value,
       monsterX: controls.monsterX.value,
       monsterY: controls.monsterY.value,
       monsterRadius: controls.monsterRadius.value,
@@ -96,6 +108,8 @@
   function syncControls(config) {
     controls.playerX.value = Math.round(config.playerX);
     controls.playerY.value = Math.round(config.playerY);
+    controls.playerRadius.value = Math.round(config.playerRadius);
+    controls.playerRadiusRange.value = Math.round(config.playerRadius);
     controls.monsterX.value = Math.round(config.monsterX);
     controls.monsterY.value = Math.round(config.monsterY);
     controls.monsterRadius.value = Math.round(config.monsterRadius);
@@ -116,7 +130,7 @@
       controls[siblingId].value = controls[sourceId].value;
     }
 
-    const cleaned = clampConfig(readRawConfig());
+    const cleaned = clampInteractionConfig(readRawConfig());
     cleaned.playerX = clampToWorld(cleaned.playerX, WORLD_WIDTH);
     cleaned.playerY = clampToWorld(cleaned.playerY, WORLD_HEIGHT);
     cleaned.monsterX = clampToWorld(cleaned.monsterX, WORLD_WIDTH);
@@ -136,7 +150,7 @@
   }
 
   function resetDefaults() {
-    state.config = clampConfig(DEFAULT_CONFIG);
+    state.config = clampInteractionConfig(DEFAULT_CONFIG);
     state.samples = [];
     state.lastDrop = null;
     state.warningFlags.swapped = false;
@@ -178,10 +192,9 @@
   }
 
   function pickDragTarget(point) {
-    const playerDistance = Math.hypot(point.x - state.config.playerX, point.y - state.config.playerY);
-    const monsterDistance = Math.hypot(point.x - state.config.monsterX, point.y - state.config.monsterY);
-    if (playerDistance <= 24) return "player";
-    if (monsterDistance <= Math.max(28, state.config.monsterRadius)) return "monster";
+    const target = getWheelTarget(point, state.config);
+    if (target === WHEEL_TARGETS.player) return "player";
+    if (target === WHEEL_TARGETS.monster) return "monster";
     return null;
   }
 
@@ -218,6 +231,7 @@
       ? `(${formatNumber(state.lastDrop.x, 1)}, ${formatNumber(state.lastDrop.y, 1)})`
       : "-";
     sampleCountBadge.textContent = `${state.samples.length} 个落点`;
+    hoverTargetBadge.textContent = `滚轮目标：${getWheelTargetLabel(state.hoverTarget)}`;
   }
 
   function updateWarnings() {
@@ -241,6 +255,7 @@
     drawDirectionArrow();
     drawSamples();
     drawActorMarkers();
+    drawHoverHighlight();
   }
 
   function drawBackground() {
@@ -381,26 +396,26 @@
 
   function drawActorMarkers() {
     const config = state.config;
-    drawPlayer(config.playerX, config.playerY);
+    drawPlayer(config.playerX, config.playerY, config.playerRadius);
     drawMonster(config.monsterX, config.monsterY, config.monsterRadius);
   }
 
-  function drawPlayer(x, y) {
+  function drawPlayer(x, y, radius) {
     ctx.save();
     ctx.fillStyle = "#2563eb";
     ctx.strokeStyle = "#173b8f";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(x, y, 18, 0, TAU);
+    ctx.arc(x, y, radius, 0, TAU);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(x - 6, y - 3, 2.5, 0, TAU);
-    ctx.arc(x + 6, y - 3, 2.5, 0, TAU);
+    ctx.arc(x - radius * 0.32, y - radius * 0.16, Math.max(2, radius * 0.14), 0, TAU);
+    ctx.arc(x + radius * 0.32, y - radius * 0.16, Math.max(2, radius * 0.14), 0, TAU);
     ctx.fill();
-    drawText("角色", x, y + 34, "#173b8f");
+    drawText("角色", x, y + Math.max(28, radius + 16), "#173b8f");
     ctx.restore();
   }
 
@@ -436,6 +451,40 @@
 
   function drawBoundaryLine(angle) {
     drawRadiusLine(angle, state.config.dropInnerRadius, state.config.dropOuterRadius, "#166141", 2.5);
+  }
+
+  function drawHoverHighlight() {
+    const config = state.config;
+    if (!state.hoverTarget) return;
+
+    ctx.save();
+    ctx.strokeStyle = "#111827";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+
+    if (state.hoverTarget === WHEEL_TARGETS.player) {
+      ctx.beginPath();
+      ctx.arc(config.playerX, config.playerY, config.playerRadius + 4, 0, TAU);
+      ctx.stroke();
+    }
+
+    if (state.hoverTarget === WHEEL_TARGETS.monster) {
+      ctx.beginPath();
+      ctx.arc(config.monsterX, config.monsterY, Math.max(12, config.monsterRadius) + 4, 0, TAU);
+      ctx.stroke();
+    }
+
+    if (state.hoverTarget === WHEEL_TARGETS.dropOuterRadius) {
+      const baseAngle = getBaseAngleFromConfig(config);
+      const halfAngle = degToRad(config.dropAngle) / 2;
+      const startAngle = config.dropAngle >= 360 ? 0 : baseAngle - halfAngle;
+      const endAngle = config.dropAngle >= 360 ? TAU : baseAngle + halfAngle;
+      ctx.beginPath();
+      ctx.arc(config.monsterX, config.monsterY, config.dropOuterRadius + 4, startAngle, endAngle);
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 
   function drawRadiusLine(angle, innerRadius, outerRadius, color, width) {
@@ -484,6 +533,39 @@
     return Number(value).toFixed(decimals).replace(/\.0+$/, "");
   }
 
+  function getWheelTargetLabel(target) {
+    if (target === WHEEL_TARGETS.player) return "角色半径";
+    if (target === WHEEL_TARGETS.monster) return "怪物半径";
+    if (target === WHEEL_TARGETS.dropOuterRadius) return "掉落外半径";
+    return "-";
+  }
+
+  function clearSamplesAfterConfigChange() {
+    state.samples = [];
+    state.lastDrop = null;
+  }
+
+  function updateHoverTarget(point) {
+    const nextTarget = getWheelTarget(point, state.config);
+    if (nextTarget === state.hoverTarget) return;
+    state.hoverTarget = nextTarget;
+    render();
+  }
+
+  function handleCanvasWheel(event) {
+    const point = getPointerWorldPosition(event);
+    const target = getWheelTarget(point, state.config);
+    if (!target) return;
+
+    event.preventDefault();
+    state.config = applyWheelDelta(state.config, target, event.deltaY);
+    state.warningFlags.swapped = false;
+    clearSamplesAfterConfigChange();
+    syncControls(state.config);
+    state.hoverTarget = getWheelTarget(point, state.config);
+    render();
+  }
+
   function bindEvents() {
     Object.entries(controls).forEach(([id, control]) => {
       control.addEventListener("input", () => updateConfigFromControls(id));
@@ -506,12 +588,21 @@
     });
 
     canvas.addEventListener("pointermove", (event) => {
-      if (!state.dragTarget) return;
-      moveDragTarget(getPointerWorldPosition(event));
+      const point = getPointerWorldPosition(event);
+      if (state.dragTarget) {
+        moveDragTarget(point);
+        return;
+      }
+      updateHoverTarget(point);
     });
 
     canvas.addEventListener("pointerup", releaseDrag);
     canvas.addEventListener("pointercancel", releaseDrag);
+    canvas.addEventListener("pointerleave", () => {
+      state.hoverTarget = null;
+      render();
+    });
+    canvas.addEventListener("wheel", handleCanvasWheel, { passive: false });
     window.addEventListener("resize", () => {
       setupCanvasResolution();
       render();
