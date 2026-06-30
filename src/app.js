@@ -14,6 +14,11 @@
     clampInteractionConfig,
     getWheelTarget,
   } = window.DropInteraction;
+  const {
+    computeWorldViewport,
+    getVisibleWorldBounds,
+    screenToWorld,
+  } = window.CanvasViewport;
 
   const WORLD_WIDTH = 900;
   const WORLD_HEIGHT = 620;
@@ -70,6 +75,7 @@
     lastDrop: null,
     dragTarget: null,
     hoverTarget: null,
+    viewport: null,
     warningFlags: {
       swapped: false,
     },
@@ -178,17 +184,30 @@
 
   function setupCanvasResolution() {
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.round(WORLD_WIDTH * ratio);
-    canvas.height = Math.round(WORLD_HEIGHT * ratio);
+    const rect = canvas.getBoundingClientRect();
+    const screenWidth = Math.max(1, rect.width);
+    const screenHeight = Math.max(1, rect.height);
+
+    canvas.width = Math.round(screenWidth * ratio);
+    canvas.height = Math.round(screenHeight * ratio);
+    state.viewport = computeWorldViewport({
+      screenWidth,
+      screenHeight,
+      worldWidth: WORLD_WIDTH,
+      worldHeight: WORLD_HEIGHT,
+    });
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
   function getPointerWorldPosition(event) {
     const rect = canvas.getBoundingClientRect();
-    return {
-      x: ((event.clientX - rect.left) / rect.width) * WORLD_WIDTH,
-      y: ((event.clientY - rect.top) / rect.height) * WORLD_HEIGHT,
-    };
+    return screenToWorld(
+      {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      },
+      state.viewport,
+    );
   }
 
   function pickDragTarget(point) {
@@ -248,7 +267,19 @@
   }
 
   function drawScene() {
-    ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    const ratio = window.devicePixelRatio || 1;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, state.viewport.screenWidth, state.viewport.screenHeight);
+    ctx.fillStyle = "#fbfcfe";
+    ctx.fillRect(0, 0, state.viewport.screenWidth, state.viewport.screenHeight);
+    ctx.setTransform(
+      ratio * state.viewport.scale,
+      0,
+      0,
+      ratio * state.viewport.scale,
+      ratio * state.viewport.offsetX,
+      ratio * state.viewport.offsetY,
+    );
     drawBackground();
     drawDropRegion();
     drawMonsterRadius();
@@ -259,23 +290,29 @@
   }
 
   function drawBackground() {
+    const bounds = getVisibleWorldBounds(state.viewport);
+    const gridStartX = Math.floor(bounds.left / 50) * 50;
+    const gridEndX = Math.ceil(bounds.right / 50) * 50;
+    const gridStartY = Math.floor(bounds.top / 50) * 50;
+    const gridEndY = Math.ceil(bounds.bottom / 50) * 50;
+
     ctx.save();
     ctx.fillStyle = "#fbfcfe";
-    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    ctx.fillRect(bounds.left, bounds.top, bounds.width, bounds.height);
 
     ctx.strokeStyle = "#e8edf2";
     ctx.lineWidth = 1;
-    for (let x = 0; x <= WORLD_WIDTH; x += 50) {
-      drawLine(x, 0, x, WORLD_HEIGHT);
+    for (let x = gridStartX; x <= gridEndX; x += 50) {
+      drawLine(x, bounds.top, x, bounds.bottom);
     }
-    for (let y = 0; y <= WORLD_HEIGHT; y += 50) {
-      drawLine(0, y, WORLD_WIDTH, y);
+    for (let y = gridStartY; y <= gridEndY; y += 50) {
+      drawLine(bounds.left, y, bounds.right, y);
     }
 
     ctx.strokeStyle = "#cfd8e2";
     ctx.lineWidth = 1.5;
-    drawLine(WORLD_WIDTH / 2, 0, WORLD_WIDTH / 2, WORLD_HEIGHT);
-    drawLine(0, WORLD_HEIGHT / 2, WORLD_WIDTH, WORLD_HEIGHT / 2);
+    drawLine(WORLD_WIDTH / 2, bounds.top, WORLD_WIDTH / 2, bounds.bottom);
+    drawLine(bounds.left, WORLD_HEIGHT / 2, bounds.right, WORLD_HEIGHT / 2);
     ctx.restore();
   }
 
